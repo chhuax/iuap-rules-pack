@@ -1,4 +1,4 @@
-# IUAP Core Rules
+# IUAP Common Core Rules
 
 ## 目标
 

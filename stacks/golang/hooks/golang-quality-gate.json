@@ -1,0 +1,12 @@
+{
+  "script": "scripts/golang-quality-gate.mjs",
+  "targets": {
+    "claude": {
+      "description": "Run lightweight Golang delivery checks after file edits",
+      "event": "PostToolUse",
+      "matcher": "Edit|Write|MultiEdit",
+      "async": true,
+      "timeout": 20
+    }
+  }
+}

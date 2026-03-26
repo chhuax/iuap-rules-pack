@@ -1,0 +1,11 @@
+{
+  "script": "scripts/pre-push-reminder.mjs",
+  "targets": {
+    "claude": {
+      "description": "Remind the agent to confirm review and verification before git push",
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "timeout": 5
+    }
+  }
+}

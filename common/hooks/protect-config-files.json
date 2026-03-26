@@ -1,0 +1,11 @@
+{
+  "script": "scripts/protect-config-files.mjs",
+  "targets": {
+    "claude": {
+      "description": "Protect enterprise config files from accidental weakening",
+      "event": "PreToolUse",
+      "matcher": "Edit|Write|MultiEdit",
+      "timeout": 5
+    }
+  }
+}

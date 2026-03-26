@@ -1,0 +1,12 @@
+{
+  "script": "scripts/java-quality-gate.mjs",
+  "targets": {
+    "claude": {
+      "description": "Run lightweight Java delivery checks after file edits",
+      "event": "PostToolUse",
+      "matcher": "Edit|Write|MultiEdit",
+      "async": true,
+      "timeout": 20
+    }
+  }
+}

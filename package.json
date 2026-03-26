@@ -1,17 +1,38 @@
 {
   "name": "iuap-rules-pack",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
   "description": "IUAP enterprise rules, skills, and hooks package",
   "type": "module",
-  "scripts": {
-    "validate": "bash hooks/pre-commit-check.sh"
+  "bin": {
+    "iuap-rules-pack": "bin/iuap-rules-pack.js"
   },
+  "scripts": {
+    "validate": "bash hooks/pre-commit-check.sh",
+    "test": "node --test"
+  },
+  "files": [
+    "bin/",
+    "common/",
+    "docs/",
+    "hooks/",
+    "stacks/",
+    "src/",
+    "README.md"
+  ],
   "engines": {
     "node": ">=20"
   },
   "repository": {
     "type": "git",
     "url": "git@github.com:chhuax/iuap-rules-pack.git"
-  }
+  },
+  "keywords": [
+    "claude-code",
+    "rules",
+    "skills",
+    "hooks",
+    "java",
+    "golang",
+    "installer"
+  ]
 }
