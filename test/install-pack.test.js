@@ -43,6 +43,11 @@ function runCli(args, options = {}) {
   return result;
 }
 
+function hasPlanEntryPath(entries, ...segments) {
+  const suffix = path.join(...segments);
+  return entries.some(entry => entry.path.endsWith(suffix));
+}
+
 test("installPack projects rules, skills, and Claude hooks", () => {
   const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack");
 
@@ -57,15 +62,14 @@ test("installPack projects rules, skills, and Claude hooks", () => {
     selectedTargets: ["claude"],
   });
 
-  assert.ok(result.plan.entries.some(entry => entry.path.endsWith("rules/core.md")));
+  assert.ok(hasPlanEntryPath(result.plan.entries, "rules", "core.md"));
+  assert.ok(hasPlanEntryPath(result.plan.entries, "commands", "java-code-review.md"));
   assert.ok(
-    result.plan.entries.some(entry =>
-      entry.path.endsWith("commands/java-code-review.md")
-    )
-  );
-  assert.ok(
-    result.plan.entries.some(entry =>
-      entry.path.endsWith("iuap-rules-pack/hooks/protect-config-files.mjs")
+    hasPlanEntryPath(
+      result.plan.entries,
+      "iuap-rules-pack",
+      "hooks",
+      "protect-config-files.mjs"
     )
   );
 
