@@ -1,0 +1,17 @@
+{
+  "name": "iuap-rules-pack",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IUAP enterprise rules, skills, and hooks package",
+  "type": "module",
+  "scripts": {
+    "validate": "bash hooks/pre-commit-check.sh"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:chhuax/iuap-rules-pack.git"
+  }
+}
