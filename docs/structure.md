@@ -10,7 +10,7 @@ common/
   rules/
   skills/
 scripts/
-  validate-structure.sh
+  validate-structure.mjs
 stacks/
   java/
     hooks/

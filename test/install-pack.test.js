@@ -4,11 +4,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 
 import { installPack } from "../src/lib/install-pack.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(testDir, "..");
+const cliPath = path.join(repoRoot, "bin", "iuap-rules-pack.js");
 
 function makeTempDir(label) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `${label}-`));
@@ -23,6 +25,22 @@ function createInstallContext(label) {
   fs.mkdirSync(projectRoot, { recursive: true });
 
   return { claudeHome, codexHome, projectRoot, tempRoot };
+}
+
+function runCli(args, options = {}) {
+  const result = spawnSync(process.execPath, [cliPath, ...args], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    ...options,
+  });
+
+  assert.equal(
+    result.status,
+    0,
+    `CLI exited with ${result.status}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`
+  );
+
+  return result;
 }
 
 test("installPack projects rules, skills, and Claude hooks", () => {
@@ -187,5 +205,39 @@ test("installPack projects OpenCode instructions and commands into project confi
   assert.equal(
     config.command["golang-service-review"]?.template,
     "{file:commands/golang-service-review.md}\n\n$ARGUMENTS"
+  );
+});
+
+test("CLI install projects all supported targets with stack selection", () => {
+  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-cli");
+
+  const result = runCli([
+    "install",
+    "--stack",
+    "java,golang",
+    "--target",
+    "claude,codex,opencode",
+    "--project-root",
+    projectRoot,
+    "--claude-home",
+    claudeHome,
+    "--codex-home",
+    codexHome,
+  ]);
+
+  assert.match(result.stdout, /Installed iuap-rules-pack/);
+  assert.equal(
+    fs.existsSync(path.join(claudeHome, "rules", "golang-service-review.md")),
+    true
+  );
+  assert.equal(
+    fs.existsSync(path.join(codexHome, "skills", "java-code-review", "SKILL.md")),
+    true
+  );
+  assert.equal(
+    fs.existsSync(
+      path.join(projectRoot, ".opencode", "commands", "golang-service-review.md")
+    ),
+    true
   );
 });

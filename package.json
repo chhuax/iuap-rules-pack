@@ -7,8 +7,8 @@
     "iuap-rules-pack": "bin/iuap-rules-pack.js"
   },
   "scripts": {
-    "check": "bash scripts/validate-structure.sh && node --test",
-    "validate": "bash scripts/validate-structure.sh",
+    "check": "node scripts/validate-structure.mjs && node --test",
+    "validate": "node scripts/validate-structure.mjs",
     "test": "node --test"
   },
   "files": [
