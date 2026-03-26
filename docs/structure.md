@@ -9,6 +9,8 @@ common/
   hooks/
   rules/
   skills/
+scripts/
+  validate-structure.sh
 stacks/
   java/
     hooks/

@@ -7,15 +7,15 @@
     "iuap-rules-pack": "bin/iuap-rules-pack.js"
   },
   "scripts": {
-    "check": "bash hooks/pre-commit-check.sh && node --test",
-    "validate": "bash hooks/pre-commit-check.sh",
+    "check": "bash scripts/validate-structure.sh && node --test",
+    "validate": "bash scripts/validate-structure.sh",
     "test": "node --test"
   },
   "files": [
     "bin/",
     "common/",
     "docs/",
-    "hooks/",
+    "scripts/",
     "stacks/",
     "src/",
     "README.md"

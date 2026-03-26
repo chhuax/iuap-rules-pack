@@ -30,9 +30,9 @@ iuap-rules-pack/
 │       ├── rules/
 │       └── skills/
 ├── bin/
+├── scripts/
 ├── src/
 ├── docs/
-├── hooks/
 ├── package.json
 └── README.md
 ```

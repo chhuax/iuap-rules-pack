@@ -18,7 +18,7 @@ required_paths=(
   "$repo_root/stacks/golang/rules"
   "$repo_root/stacks/golang/skills"
   "$repo_root/stacks/golang/hooks"
-  "$repo_root/hooks"
+  "$repo_root/scripts"
   "$repo_root/README.md"
   "$repo_root/package.json"
 )
