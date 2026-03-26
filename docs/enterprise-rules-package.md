@@ -71,6 +71,20 @@ iuap-rules-pack/
 
 ### 安装命令
 
+这里要区分“架构目标”与“当前落地状态”：
+
+- 当前已落地的是 `iuap-rules-pack` 自带安装器
+- `praxis-devos install-rules` 是目标形态，尚未在 `praxis-devos` 仓库中实现
+
+当前可用命令：
+
+```bash
+npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install --stack java --target claude
+npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install --stack java,golang --target claude,codex,opencode --project-root /path/to/project
+```
+
+规划中的 `praxis-devos` 薄封装入口：
+
 ```bash
 npx praxis-devos install-rules @company/java-standards
 npx praxis-devos install-rules @company/java-standards --registry https://npm.company.com

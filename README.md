@@ -1,16 +1,26 @@
 # iuap-rules-pack
 
-IUAP 企业定制规则包项目，用于沉淀团队自己的 `rules`、`skills`、`hooks`，并通过 npm / Git 仓库命令自动投放到 Claude、Codex、OpenCode。
+`iuap-rules-pack` 是一个企业规则包仓库，用来沉淀并分发企业级 `rules`、`skills`、`hooks`。它面向 Claude、Codex、OpenCode 三类运行时，按“公共层 + 技术栈层”的方式组织资产，并通过 CLI 自动投放到各自的原生入口。
+
+当前仓库已经提供可直接使用的自安装命令。它同时被设计成 `praxis-devos` 的附属包，后续可以由 `praxis-devos` 提供统一入口来调用本仓库的安装器。
+
+## 当前状态
+
+- 已支持从本仓库直接安装
+- 已支持 `common + stacks/<stack>` 组合安装
+- 已支持 `claude / codex / opencode` 三类基础投影
+- 已支持 Claude hooks 的实际投放
+- Codex / OpenCode hooks 仍处于后续补齐阶段
 
 ## 目录结构
 
 ```text
 iuap-rules-pack/
-├── common/                   # 所有技术栈共享资产
+├── common/
 │   ├── hooks/
 │   ├── rules/
 │   └── skills/
-├── stacks/                   # 按技术栈组织的可安装模块
+├── stacks/
 │   ├── golang/
 │   │   ├── hooks/
 │   │   ├── rules/
@@ -19,23 +29,25 @@ iuap-rules-pack/
 │       ├── hooks/
 │       ├── rules/
 │       └── skills/
-├── bin/                      # CLI 入口
-├── src/                      # 安装器实现
-├── docs/                     # 设计说明、接入文档、演进记录
-├── hooks/                    # 仓库自身的校验脚本，不是投放目标资产
-├── .gitignore
+├── bin/
+├── src/
+├── docs/
+├── hooks/
 ├── package.json
 └── README.md
 ```
 
-## 组织原则
+## 设计原则
 
-- 这个仓库不做技术栈自动检测
+- 不做技术栈自动检测
 - 用户安装时通过 `--stack` 显式选择技术栈
-- 仓库目录直接按“公共层 + 技术栈层”组织，方便安装器按模块投放
-- 每个模块内部再分 `rules/`、`skills/`、`hooks/`
+- 仓库按“公共层 + 技术栈层”组织，方便安装器按模块投放
+- 每个模块内部再细分为 `rules/`、`skills/`、`hooks/`
+- 投放时保留原始 `rule/skill` 名称，不额外添加统一前缀
 
 ## 当前内置内容
+
+### Common
 
 - `common/rules`
   - `core.md`
@@ -48,62 +60,187 @@ iuap-rules-pack/
 - `common/hooks`
   - `protect-config-files`
   - `pre-push-reminder`
-- `stacks/java`
-  - 规则: `java-backend.md`、`java-code-review.md`、`java-database-change.md`
-  - skills: `spring-delivery`、`java-code-review`、`java-database-change`
-  - hooks: `java-quality-gate`
-- `stacks/golang`
-  - 规则: `golang-backend.md`、`golang-service-review.md`、`golang-concurrency.md`
-  - skills: `service-delivery`、`golang-service-review`、`golang-concurrency-check`
-  - hooks: `golang-quality-gate`
-- 仓库结构校验脚本: `hooks/pre-commit-check.sh`
 
-## 投放目标
+### Java
 
-- `claude`
-  - rules -> `~/.claude/rules/*.md`
-  - skills -> `~/.claude/commands/*.md`
-  - hooks -> 合并到 `~/.claude/settings.json`，并把脚本安装到 `~/.claude/iuap-rules-pack/hooks/`
-- `codex`
-  - rules -> 项目根目录 `AGENTS.md` 受管控区块
-  - skills -> `~/.codex/skills/<skill>/SKILL.md`
-  - hooks -> 预留 Codex 特定投影能力
-- `opencode`
-  - rules -> `<project>/.opencode/instructions/iuap-rules-pack.md`
-  - skills -> `<project>/.opencode/commands/*.md`
-  - hooks -> 预留 OpenCode plugin 投影能力
+- `stacks/java/rules`
+  - `java-backend.md`
+  - `java-code-review.md`
+  - `java-database-change.md`
+- `stacks/java/skills`
+  - `spring-delivery`
+  - `java-code-review`
+  - `java-database-change`
+- `stacks/java/hooks`
+  - `java-quality-gate`
 
-## 安装方式
+### Golang
 
-一次性直接从 Git 仓库执行:
+- `stacks/golang/rules`
+  - `golang-backend.md`
+  - `golang-service-review.md`
+  - `golang-concurrency.md`
+- `stacks/golang/skills`
+  - `service-delivery`
+  - `golang-service-review`
+  - `golang-concurrency-check`
+- `stacks/golang/hooks`
+  - `golang-quality-gate`
+
+## 投放矩阵
+
+| Target | Rules | Skills | Hooks |
+|---|---|---|---|
+| Claude | `~/.claude/rules/*.md` | `~/.claude/commands/*.md` | 合并到 `~/.claude/settings.json`，脚本安装到 `~/.claude/iuap-rules-pack/hooks/` |
+| Codex | 项目根 `AGENTS.md` 受管区块 | `~/.codex/skills/<skill>/SKILL.md` | 预留 target-specific 投影 |
+| OpenCode | `<project>/.opencode/instructions/iuap-rules-pack.md` | `<project>/.opencode/commands/*.md` 和 `opencode.json.command` | 预留 plugin 投影 |
+
+## 快速开始
+
+### 1. 直接从 Git 仓库安装
+
+只安装到 Claude:
 
 ```bash
 npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install --stack java --target claude
-npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install --stack java,golang --target claude,codex,opencode --project-root /path/to/project
 ```
 
-也可以先全局安装，再重复执行更新:
+同时安装到 Claude、Codex、OpenCode:
+
+```bash
+npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install \
+  --stack java,golang \
+  --target claude,codex,opencode \
+  --project-root /path/to/project
+```
+
+更新已安装内容:
+
+```bash
+npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git update \
+  --stack java \
+  --target claude,codex \
+  --project-root /path/to/project
+```
+
+### 2. 全局安装后复用命令
 
 ```bash
 npm install -g git+ssh://git@github.com/chhuax/iuap-rules-pack.git
-iuap-rules-pack install --stack java --target claude
-iuap-rules-pack update --stack java,golang --target claude,codex,opencode --project-root /path/to/project
 ```
 
-安装器会自动把:
+```bash
+iuap-rules-pack install --stack java --target claude
+iuap-rules-pack update --stack golang --target codex,opencode --project-root /path/to/project
+iuap-rules-pack list-stacks
+iuap-rules-pack list-targets
+```
 
-- `common/` 作为所有 target 的基础层
-- `stacks/<stack>/` 作为按技术栈选择的附加层
-- 投放时保留原始 `rule/skill` 名称，不额外添加统一前缀
-- 安装清单写入 `~/.claude/iuap-rules-pack/install-manifest.json`
-- 当前第一批 hook 已经可投放到 Claude；Codex / OpenCode 的 hook 投影仍是后续补齐项
+## 命令说明
 
-重复执行 `install` 或 `update` 时，会按 manifest 覆盖对应 target 的旧投影，达到更新效果。
-如果选择多个技术栈，包内的 `rule/skill/hook` 名称必须保持唯一，否则安装器会直接报冲突。
+### `install`
+
+执行首次安装或重新投放。
+
+```bash
+iuap-rules-pack install --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
+```
+
+### `update`
+
+按当前选择的技术栈与目标重新投放，覆盖已由本包管理的旧文件。
+
+```bash
+iuap-rules-pack update --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
+```
+
+### `list-stacks`
+
+列出当前仓库支持的技术栈。
+
+```bash
+iuap-rules-pack list-stacks
+```
+
+### `list-targets`
+
+列出当前安装器支持的 target。
+
+```bash
+iuap-rules-pack list-targets
+```
+
+## 参数约定
+
+- `--stack` 必填，当前支持 `java`、`golang`
+- `--target` 必填，当前支持 `claude`、`codex`、`opencode`
+- `--project-root` 在涉及 `codex` 或 `opencode` 时建议显式传入
+- `--claude-home` 和 `--codex-home` 主要用于测试或自定义目录
+- `--dry-run` 只输出投放计划，不实际写入文件
+
+## 安装结果与更新行为
+
+安装器会自动：
+
+- 始终安装 `common/`
+- 再安装用户选择的 `stacks/<stack>/`
+- 为每个 target 生成对应的原生投影
+- 将安装清单写入 `~/.claude/iuap-rules-pack/install-manifest.json`
+
+重复执行 `install` 或 `update` 时，会按 manifest 覆盖同一 target 下由本包管理的旧投影。
+
+如果选择多个技术栈，则包内的 `rule/skill/hook` 名称必须唯一；一旦冲突，安装器会直接报错，不做覆盖。
+
+## 与 Praxis DevOS 的关系
+
+这个仓库被设计成 `praxis-devos` 的附属包，但需要区分“当前已实现”和“后续规划”。
+
+### 当前已实现
+
+- 安装器实现位于当前仓库
+- 用户可以直接通过 `npx git+ssh://...` 或全局安装后的 `iuap-rules-pack` 命令完成安装
+- `praxis-devos` 当前还没有集成本仓库的统一封装命令
+
+### 规划中的 Praxis 入口
+
+后续可以在 `praxis-devos` 中增加一个薄封装入口，例如：
+
+```bash
+npx praxis-devos install-rules git+ssh://git@github.com/chhuax/iuap-rules-pack.git --stack java --target claude
+```
+
+这里的职责边界是：
+
+- `iuap-rules-pack` 负责包格式、资产内容和 target-specific 投影逻辑
+- `praxis-devos` 负责统一入口、规则包管理、状态检查、后续 `sync / doctor / uninstall` 等工作流
+
+当前请以本仓库自带安装命令为准，不要把 `praxis-devos install-rules` 视为已经落地的现成功能。
+
+## 开发与验证
+
+运行结构校验和所有投放测试：
+
+```bash
+npm run check
+```
+
+单独运行测试：
+
+```bash
+npm test
+```
+
+当前测试覆盖：
+
+- Claude 的 `rules / commands / hook scripts / settings.json`
+- Codex 的 `AGENTS.md` 托管区块和 `~/.codex/skills`
+- OpenCode 的 `.opencode/instructions`、`.opencode/commands` 和 `opencode.json`
+
+CI 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 
 ## 推荐扩展方式
 
 1. 公共规范放到 `common/`
 2. 每新增一个技术栈，就增加 `stacks/<stack>/`
 3. 模块内部统一保持 `rules/`、`skills/`、`hooks/`
-4. 安装器永远只做两件事: 复制 `common/` 和复制用户选中的 `stacks/<stack>/`
+4. 只有 target-specific projector 才决定最终落到哪个运行时目录

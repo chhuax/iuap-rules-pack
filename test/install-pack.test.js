@@ -14,13 +14,19 @@ function makeTempDir(label) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `${label}-`));
 }
 
-test("installPack projects rules, skills, and Claude hooks", () => {
-  const tempRoot = makeTempDir("iuap-rules-pack");
+function createInstallContext(label) {
+  const tempRoot = makeTempDir(label);
   const claudeHome = path.join(tempRoot, ".claude");
   const codexHome = path.join(tempRoot, ".codex");
   const projectRoot = path.join(tempRoot, "project");
 
   fs.mkdirSync(projectRoot, { recursive: true });
+
+  return { claudeHome, codexHome, projectRoot, tempRoot };
+}
+
+test("installPack projects rules, skills, and Claude hooks", () => {
+  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack");
 
   const result = installPack({
     claudeHome,
@@ -69,12 +75,7 @@ test("installPack projects rules, skills, and Claude hooks", () => {
 });
 
 test("installPack updates Claude assets when selected stacks change", () => {
-  const tempRoot = makeTempDir("iuap-rules-pack-update");
-  const claudeHome = path.join(tempRoot, ".claude");
-  const codexHome = path.join(tempRoot, ".codex");
-  const projectRoot = path.join(tempRoot, "project");
-
-  fs.mkdirSync(projectRoot, { recursive: true });
+  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-update");
 
   installPack({
     claudeHome,
@@ -119,5 +120,72 @@ test("installPack updates Claude assets when selected stacks change", () => {
     settings.hooks.PostToolUse.some(entry =>
       String(entry.description).includes("Golang delivery checks")
     )
+  );
+});
+
+test("installPack projects Codex rules and skills into managed locations", () => {
+  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-codex");
+
+  installPack({
+    claudeHome,
+    codexHome,
+    dryRun: false,
+    packageVersion: "0.2.0-test",
+    projectRoot,
+    repoRoot,
+    selectedStacks: ["java"],
+    selectedTargets: ["codex"],
+  });
+
+  const codexSkill = fs.readFileSync(
+    path.join(codexHome, "skills", "java-code-review", "SKILL.md"),
+    "utf8"
+  );
+  assert.match(codexSkill, /IUAP_RULES_PACKAGE/);
+  assert.match(codexSkill, /# java-code-review/);
+
+  const agents = fs.readFileSync(path.join(projectRoot, "AGENTS.md"), "utf8");
+  assert.match(agents, /IUAP_RULES_PACK_START/);
+  assert.match(agents, /#### java-code-review\.md/);
+  assert.match(agents, /- `java-code-review`/);
+});
+
+test("installPack projects OpenCode instructions and commands into project config", () => {
+  const { claudeHome, codexHome, projectRoot } = createInstallContext(
+    "iuap-rules-pack-opencode"
+  );
+
+  installPack({
+    claudeHome,
+    codexHome,
+    dryRun: false,
+    packageVersion: "0.2.0-test",
+    projectRoot,
+    repoRoot,
+    selectedStacks: ["golang"],
+    selectedTargets: ["opencode"],
+  });
+
+  const instructions = fs.readFileSync(
+    path.join(projectRoot, ".opencode", "instructions", "iuap-rules-pack.md"),
+    "utf8"
+  );
+  assert.match(instructions, /# IUAP Enterprise Rules/);
+  assert.match(instructions, /## golang-service-review\.md/);
+
+  const command = fs.readFileSync(
+    path.join(projectRoot, ".opencode", "commands", "golang-service-review.md"),
+    "utf8"
+  );
+  assert.match(command, /description: golang-service-review/);
+  assert.match(command, /IUAP_RULES_PACKAGE/);
+
+  const config = JSON.parse(
+    fs.readFileSync(path.join(projectRoot, ".opencode", "opencode.json"), "utf8")
+  );
+  assert.deepEqual(config.instructions, ["instructions/iuap-rules-pack.md"]);
+  assert.equal(
+    config.command["golang-service-review"]?.template,
+    "{file:commands/golang-service-review.md}\n\n$ARGUMENTS"
   );
 });
