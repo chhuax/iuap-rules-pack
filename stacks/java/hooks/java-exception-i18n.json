@@ -1,0 +1,29 @@
+{
+  "script": "scripts/java-exception-i18n.mjs",
+  "targets": {
+    "claude": {
+      "description": "Route Java exception i18n handling after file edits",
+      "event": "PostToolUse",
+      "matcher": "Edit|Write|MultiEdit",
+      "async": true,
+      "timeout": 20,
+      "mode": "semi-auto"
+    },
+    "codex": {
+      "description": "Route Java exception i18n handling after file edits",
+      "mode": "semi-auto",
+      "trigger": "When a Java edit introduces a Chinese exception literal that is not yet wrapped by InternationalUtils.getMessageWithDefault(...),",
+      "action": "immediately run `yms-i18n <current-file>` before continuing implementation."
+    },
+    "opencode": {
+      "description": "Route Java exception i18n handling after file edits",
+      "event": "PostToolUse",
+      "matcher": "Edit|Write|MultiEdit",
+      "async": true,
+      "timeout": 20,
+      "mode": "semi-auto",
+      "trigger": "When a Java edit introduces a Chinese exception literal that is not yet wrapped by InternationalUtils.getMessageWithDefault(...),",
+      "action": "immediately run `yms-i18n <current-file>` before continuing implementation."
+    }
+  }
+}

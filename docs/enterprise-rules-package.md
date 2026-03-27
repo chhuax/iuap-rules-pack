@@ -97,7 +97,7 @@ npx praxis-devos install-rules git+https://git.company.com/standards/java.git
 企业包资产            Claude Code                          Codex                                   OpenCode
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 rules/*.md          ~/.claude/rules/<原文件名>.md         项目根 AGENTS.md 托管区块                .opencode/instructions/*.md
-skills/*/SKILL.md   ~/.claude/commands/<skill>.md         ~/.codex/skills/<skill>/SKILL.md        .opencode/commands/*.md + opencode.json.command
+skills/*/SKILL.md   ~/.claude/commands/<skill>.md + ~/.claude/skills/<skill>/SKILL.md         ~/.codex/skills/<skill>/SKILL.md        复用 ~/.claude/skills/<skill>/SKILL.md
 hooks/*.json        ~/.claude/settings.json               预留 Codex-specific hooks / notify        预留 .opencode/plugins/*.ts
 ```
 
@@ -105,7 +105,7 @@ hooks/*.json        ~/.claude/settings.json               预留 Codex-specific 
 
 - Claude Code 的原生通道最完整，所以 `rules + commands + hooks` 都可以直接投影
 - Codex 当前原型采取 “`AGENTS.md + ~/.codex/skills/`” 模式
-- OpenCode 当前原型采取 “`.opencode/instructions + .opencode/commands + opencode.json`” 模式
+- OpenCode 当前原型采取 “`.opencode/instructions + 复用 ~/.claude/skills + opencode hooks/plugin`” 模式
 - Codex / OpenCode hooks 能力需要按各自模型单独映射，不能直接照搬 Claude 的 hooks.json 结构
 
 ### 投影文件标记

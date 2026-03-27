@@ -87,6 +87,7 @@ export function resolveManualTargets(targetValue) {
 export function installPack({
   claudeHome,
   codexHome,
+  opencodeHome,
   dryRun,
   packageVersion,
   projectRoot,
@@ -112,6 +113,7 @@ export function installPack({
       assets,
       claudeHome,
       codexHome,
+      opencodeHome,
       dryRun,
       previousEntries: previousTargets[target]?.entries || [],
       projectRoot,
@@ -136,6 +138,7 @@ export function installPack({
     const manifest = {
       claudeHome,
       codexHome,
+      opencodeHome,
       installedAt: new Date().toISOString(),
       packageVersion,
       projectRoot,

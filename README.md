@@ -10,7 +10,8 @@
 - 已支持 `common + stacks/<stack>` 组合安装
 - 已支持 `claude / codex / opencode` 三类基础投影
 - 已支持 Claude hooks 的实际投放
-- Codex / OpenCode hooks 仍处于后续补齐阶段
+- 已支持 OpenCode hooks 的全局 plugin 投放
+- Codex hooks 仍处于后续补齐阶段
 
 ## 目录结构
 
@@ -71,8 +72,10 @@ iuap-rules-pack/
   - `spring-delivery`
   - `java-code-review`
   - `java-database-change`
+  - `yms-i18n`
 - `stacks/java/hooks`
   - `java-quality-gate`
+  - `java-exception-i18n`
 
 ### Golang
 
@@ -93,7 +96,7 @@ iuap-rules-pack/
 |---|---|---|---|
 | Claude | `~/.claude/rules/*.md` | `~/.claude/commands/*.md` | 合并到 `~/.claude/settings.json`，脚本安装到 `~/.claude/iuap-rules-pack/hooks/` |
 | Codex | 项目根 `AGENTS.md` 受管区块 | `~/.codex/skills/<skill>/SKILL.md` | 预留 target-specific 投影 |
-| OpenCode | `<project>/.opencode/instructions/iuap-rules-pack.md` | `<project>/.opencode/commands/*.md` 和 `opencode.json.command` | 预留 plugin 投影 |
+| OpenCode | `<project>/.opencode/instructions/iuap-rules-pack.md` | 复用 `~/.claude/skills/<skill>/SKILL.md` 作为共享 skills 落点 | `~/.config/opencode/plugins/*.js` 与 `~/.config/opencode/iuap-rules-pack/hooks/*` |
 
 ## 快速开始
 
@@ -111,6 +114,7 @@ npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install --stack java 
 npx -y git+ssh://git@github.com/chhuax/iuap-rules-pack.git install \
   --stack java,golang \
   --target claude,codex,opencode \
+  --opencode-home ~/.config/opencode \
   --project-root /path/to/project
 ```
 
@@ -143,7 +147,7 @@ iuap-rules-pack list-targets
 执行首次安装或重新投放。
 
 ```bash
-iuap-rules-pack install --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
+iuap-rules-pack install --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--opencode-home <path>] [--dry-run]
 ```
 
 ### `update`
@@ -151,7 +155,7 @@ iuap-rules-pack install --stack <stack[,stack...]> --target <target[,target...]>
 按当前选择的技术栈与目标重新投放，覆盖已由本包管理的旧文件。
 
 ```bash
-iuap-rules-pack update --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
+iuap-rules-pack update --stack <stack[,stack...]> --target <target[,target...]> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--opencode-home <path>] [--dry-run]
 ```
 
 ### `list-stacks`
@@ -175,7 +179,7 @@ iuap-rules-pack list-targets
 - `--stack` 必填，当前支持 `java`、`golang`
 - `--target` 必填，当前支持 `claude`、`codex`、`opencode`
 - `--project-root` 在涉及 `codex` 或 `opencode` 时建议显式传入
-- `--claude-home` 和 `--codex-home` 主要用于测试或自定义目录
+- `--claude-home`、`--codex-home`、`--opencode-home` 主要用于测试或自定义目录
 - `--dry-run` 只输出投放计划，不实际写入文件
 
 ## 安装结果与更新行为
@@ -234,7 +238,7 @@ npm test
 
 - Claude 的 `rules / commands / hook scripts / settings.json`
 - Codex 的 `AGENTS.md` 托管区块和 `~/.codex/skills`
-- OpenCode 的 `.opencode/instructions`、`.opencode/commands` 和 `opencode.json`
+- OpenCode 的 `.opencode/instructions`、共享 `~/.claude/skills`、`opencode.json` 和全局 `plugins`
 
 CI 配置见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)。
 

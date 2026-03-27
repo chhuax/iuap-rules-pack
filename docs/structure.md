@@ -47,7 +47,7 @@ iuap-rules-pack install --stack java,golang --target claude,codex,opencode
 - `common + stack rules` -> `<project>/.opencode/instructions/iuap-rules-pack.md`
 - `common/skills/enterprise-delivery` -> `~/.claude/commands/enterprise-delivery.md`
 - `stacks/golang/skills/service-delivery` -> `~/.codex/skills/service-delivery/`
-- `stacks/*/skills/*` -> `<project>/.opencode/commands/<skill>.md`
+- `stacks/*/skills/*` -> `~/.claude/skills/<skill>/SKILL.md`（供 OpenCode 复用）
 
 ## 后续方向
 

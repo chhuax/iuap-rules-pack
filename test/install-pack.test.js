@@ -20,11 +20,12 @@ function createInstallContext(label) {
   const tempRoot = makeTempDir(label);
   const claudeHome = path.join(tempRoot, ".claude");
   const codexHome = path.join(tempRoot, ".codex");
+  const opencodeHome = path.join(tempRoot, ".config", "opencode");
   const projectRoot = path.join(tempRoot, "project");
 
   fs.mkdirSync(projectRoot, { recursive: true });
 
-  return { claudeHome, codexHome, projectRoot, tempRoot };
+  return { claudeHome, codexHome, opencodeHome, projectRoot, tempRoot };
 }
 
 function runCli(args, options = {}) {
@@ -43,17 +44,26 @@ function runCli(args, options = {}) {
   return result;
 }
 
+function runNodeScript(scriptPath, options = {}) {
+  return spawnSync(process.execPath, [scriptPath], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    ...options,
+  });
+}
+
 function hasPlanEntryPath(entries, ...segments) {
   const suffix = path.join(...segments);
   return entries.some(entry => entry.path.endsWith(suffix));
 }
 
 test("installPack projects rules, skills, and Claude hooks", () => {
-  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack");
+  const { claudeHome, codexHome, opencodeHome, projectRoot } = createInstallContext("iuap-rules-pack");
 
   const result = installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: false,
     packageVersion: "0.2.0-test",
     projectRoot,
@@ -88,6 +98,11 @@ test("installPack projects rules, skills, and Claude hooks", () => {
       String(entry.description).includes("Run lightweight Java delivery checks")
     )
   );
+  assert.ok(
+    settings.hooks.PostToolUse.some(entry =>
+      String(entry.description).includes("Route Java exception i18n handling")
+    )
+  );
 
   const installedScript = fs.readFileSync(
     path.join(claudeHome, "iuap-rules-pack", "hooks", "protect-config-files.mjs"),
@@ -97,11 +112,12 @@ test("installPack projects rules, skills, and Claude hooks", () => {
 });
 
 test("installPack updates Claude assets when selected stacks change", () => {
-  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-update");
+  const { claudeHome, codexHome, opencodeHome, projectRoot } = createInstallContext("iuap-rules-pack-update");
 
   installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: false,
     packageVersion: "0.2.0-test",
     projectRoot,
@@ -113,6 +129,7 @@ test("installPack updates Claude assets when selected stacks change", () => {
   installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: false,
     packageVersion: "0.2.0-test",
     projectRoot,
@@ -146,11 +163,12 @@ test("installPack updates Claude assets when selected stacks change", () => {
 });
 
 test("installPack projects Codex rules and skills into managed locations", () => {
-  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-codex");
+  const { claudeHome, codexHome, opencodeHome, projectRoot } = createInstallContext("iuap-rules-pack-codex");
 
   installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: false,
     packageVersion: "0.2.0-test",
     projectRoot,
@@ -170,21 +188,25 @@ test("installPack projects Codex rules and skills into managed locations", () =>
   assert.match(agents, /IUAP_RULES_PACK_START/);
   assert.match(agents, /#### java-code-review\.md/);
   assert.match(agents, /- `java-code-review`/);
+  assert.match(agents, /### Codex Hook Notes/);
+  assert.match(agents, /When a Java edit introduces a Chinese exception literal/);
+  assert.match(agents, /`yms-i18n <current-file>`/);
 });
 
-test("installPack projects OpenCode instructions and commands into project config", () => {
-  const { claudeHome, codexHome, projectRoot } = createInstallContext(
+test("installPack projects OpenCode instructions, shared Claude skills, and global plugins", () => {
+  const { claudeHome, codexHome, opencodeHome, projectRoot } = createInstallContext(
     "iuap-rules-pack-opencode"
   );
 
   installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: false,
     packageVersion: "0.2.0-test",
     projectRoot,
     repoRoot,
-    selectedStacks: ["golang"],
+    selectedStacks: ["java"],
     selectedTargets: ["opencode"],
   });
 
@@ -193,27 +215,86 @@ test("installPack projects OpenCode instructions and commands into project confi
     "utf8"
   );
   assert.match(instructions, /# IUAP Enterprise Rules/);
-  assert.match(instructions, /## golang-service-review\.md/);
+  assert.match(instructions, /## java-code-review\.md/);
+  assert.match(instructions, /## Triggered Workflows/);
+  assert.match(instructions, /When a Java edit introduces a Chinese exception literal/);
+  assert.match(instructions, /`yms-i18n <current-file>`/);
 
-  const command = fs.readFileSync(
-    path.join(projectRoot, ".opencode", "commands", "golang-service-review.md"),
+  const sharedSkill = fs.readFileSync(
+    path.join(claudeHome, "skills", "yms-i18n", "SKILL.md"),
     "utf8"
   );
-  assert.match(command, /description: golang-service-review/);
-  assert.match(command, /IUAP_RULES_PACKAGE/);
+  assert.match(sharedSkill, /Java 异常信息多语言处理/);
+  assert.match(sharedSkill, /IUAP_RULES_PACKAGE/);
+  assert.equal(
+    fs.existsSync(path.join(projectRoot, ".opencode", "commands", "yms-i18n.md")),
+    false
+  );
 
   const config = JSON.parse(
     fs.readFileSync(path.join(projectRoot, ".opencode", "opencode.json"), "utf8")
   );
   assert.deepEqual(config.instructions, ["instructions/iuap-rules-pack.md"]);
-  assert.equal(
-    config.command["golang-service-review"]?.template,
-    "{file:commands/golang-service-review.md}\n\n$ARGUMENTS"
+  assert.deepEqual(config.command, {});
+
+  const globalPlugin = fs.readFileSync(
+    path.join(opencodeHome, "plugins", "iuap-rules-pack.js"),
+    "utf8"
   );
+  assert.match(globalPlugin, /tool\.execute\.before/);
+  assert.match(globalPlugin, /tool\.execute\.after/);
+  assert.match(globalPlugin, /java-exception-i18n/);
+
+  const globalHookScript = fs.readFileSync(
+    path.join(opencodeHome, "iuap-rules-pack", "hooks", "java-exception-i18n.mjs"),
+    "utf8"
+  );
+  assert.match(globalHookScript, /IUAP_RULES_PACKAGE/);
+});
+
+test("java exception i18n hook detects Chinese exception literals and routes to yms-i18n", () => {
+  const tempRoot = makeTempDir("iuap-rules-pack-java-i18n-hook");
+  const javaFile = path.join(tempRoot, "OrderService.java");
+  const scriptPath = path.join(
+    repoRoot,
+    "stacks",
+    "java",
+    "hooks",
+    "scripts",
+    "java-exception-i18n.mjs"
+  );
+
+  fs.writeFileSync(
+    javaFile,
+    [
+      "public class OrderService {",
+      "  void run() {",
+      '    throw new RuntimeException("参数不能为空");',
+      "  }",
+      "}",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const payload = JSON.stringify({
+    tool_input: {
+      file_path: javaFile,
+    },
+  });
+
+  const result = runNodeScript(scriptPath, {
+    input: payload,
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, payload);
+  assert.match(result.stderr, /yms-i18n/);
+  assert.match(result.stderr, /OrderService\.java/);
 });
 
 test("CLI install projects all supported targets with stack selection", () => {
-  const { claudeHome, codexHome, projectRoot } = createInstallContext("iuap-rules-pack-cli");
+  const { claudeHome, codexHome, opencodeHome, projectRoot } = createInstallContext("iuap-rules-pack-cli");
 
   const result = runCli([
     "install",
@@ -227,6 +308,8 @@ test("CLI install projects all supported targets with stack selection", () => {
     claudeHome,
     "--codex-home",
     codexHome,
+    "--opencode-home",
+    opencodeHome,
   ]);
 
   assert.match(result.stdout, /Installed iuap-rules-pack/);
@@ -242,6 +325,14 @@ test("CLI install projects all supported targets with stack selection", () => {
     fs.existsSync(
       path.join(projectRoot, ".opencode", "commands", "golang-service-review.md")
     ),
+    false
+  );
+  assert.equal(
+    fs.existsSync(path.join(claudeHome, "skills", "golang-service-review", "SKILL.md")),
+    true
+  );
+  assert.equal(
+    fs.existsSync(path.join(opencodeHome, "plugins", "iuap-rules-pack.js")),
     true
   );
 });

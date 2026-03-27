@@ -98,10 +98,11 @@ function inferRuntime(scriptPath, runtime) {
   throw new Error(`Unsupported Claude hook script type: ${scriptPath}`);
 }
 
-function buildHookCommand(scriptPath, runtime) {
-  const resolvedRuntime = inferRuntime(scriptPath, runtime);
+function buildHookCommand(scriptPath, target = {}) {
+  const resolvedRuntime = inferRuntime(scriptPath, target.runtime);
+  const suffix = target.mode ? ` --mode ${JSON.stringify(target.mode)}` : "";
   if (resolvedRuntime === "node") {
-    return `node "${scriptPath}"`;
+    return `node "${scriptPath}"${suffix}`;
   }
 
   if (resolvedRuntime === "bash") {
@@ -138,7 +139,7 @@ function buildClaudeHookEntry({ hook, scriptPath }) {
     throw new Error(`Claude hook ${hook.sourceRel} is missing a projected script path`);
   }
 
-  const command = buildHookCommand(scriptPath, target.runtime);
+  const command = buildHookCommand(scriptPath, target);
   const hookCommand = {
     command,
     type: "command",

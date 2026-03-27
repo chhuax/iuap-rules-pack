@@ -21,8 +21,8 @@ function printHelp() {
   console.log(`iuap-rules-pack v${packageJson.version}
 
 Usage:
-  iuap-rules-pack install --stack <java,golang> --target <claude,codex,opencode> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
-  iuap-rules-pack update --stack <java,golang> --target <claude,codex,opencode> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--dry-run]
+  iuap-rules-pack install --stack <java,golang> --target <claude,codex,opencode> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--opencode-home <path>] [--dry-run]
+  iuap-rules-pack update --stack <java,golang> --target <claude,codex,opencode> [--project-root <path>] [--claude-home <path>] [--codex-home <path>] [--opencode-home <path>] [--dry-run]
   iuap-rules-pack list-stacks
   iuap-rules-pack list-targets
   iuap-rules-pack help
@@ -39,6 +39,7 @@ function parseArgs(argv) {
   const options = {
     claudeHome: path.join(os.homedir(), ".claude"),
     codexHome: path.join(os.homedir(), ".codex"),
+    opencodeHome: path.join(os.homedir(), ".config", "opencode"),
     dryRun: false,
     projectRoot: process.cwd(),
     stack: "",
@@ -83,6 +84,12 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (value === "--opencode-home") {
+      options.opencodeHome = rest[index + 1];
+      index += 1;
+      continue;
+    }
+
     throw new Error(`Unknown argument: ${value}`);
   }
 
@@ -93,6 +100,7 @@ export async function main(argv) {
   const { command, options } = parseArgs(argv);
   const claudeHome = path.resolve(options.claudeHome);
   const codexHome = path.resolve(options.codexHome);
+  const opencodeHome = path.resolve(options.opencodeHome);
   const projectRoot = path.resolve(options.projectRoot);
 
   if (command === "help" || command === "--help" || command === "-h") {
@@ -126,6 +134,7 @@ export async function main(argv) {
   const result = installPack({
     claudeHome,
     codexHome,
+    opencodeHome,
     dryRun: options.dryRun,
     packageVersion: packageJson.version,
     projectRoot,
@@ -138,6 +147,7 @@ export async function main(argv) {
   console.log(`${action} iuap-rules-pack ${packageJson.version}`);
   console.log(`Claude home: ${claudeHome}`);
   console.log(`Codex home: ${codexHome}`);
+  console.log(`OpenCode home: ${opencodeHome}`);
   console.log(`Project root: ${projectRoot}`);
   console.log(`Selected stacks: ${selectedStacks.join(", ")}`);
   console.log(`Selected targets: ${selectedTargets.join(", ")}`);

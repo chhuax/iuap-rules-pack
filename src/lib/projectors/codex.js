@@ -42,6 +42,15 @@ function renderCodexSkill({ asset, version }) {
   return `${marker}\n\n${asset.content}`;
 }
 
+function collectHookTargets(hooks, targetName) {
+  return hooks
+    .map(hook => ({
+      hook,
+      target: hook.definition?.targets?.[targetName],
+    }))
+    .filter(item => item.target);
+}
+
 function compileRulesBlock({ assets, projectRoot, version }) {
   const sections = [
     "## IUAP Enterprise Rules",
@@ -66,11 +75,14 @@ function compileRulesBlock({ assets, projectRoot, version }) {
     sections.push(`- \`${asset.skillName}\``);
   }
 
-  if (assets.hooks.some(hook => hook.definition?.targets?.codex)) {
+  const codexHooks = collectHookTargets(assets.hooks, "codex");
+  if (codexHooks.length > 0) {
     sections.push("");
     sections.push("### Codex Hook Notes");
     sections.push("");
-    sections.push("- Codex hook payloads are defined, but only notify-style Codex hooks are currently planned in this package.");
+    for (const { target } of codexHooks) {
+      sections.push(`- ${target.trigger} ${target.action}`);
+    }
   }
 
   return sections.join("\n").trim();
@@ -128,8 +140,8 @@ export function projectCodex({
     fs.writeFileSync(agentsPath, next, "utf8");
   }
 
-  if (assets.hooks.length > 0) {
-    notes.push("Codex: hook projection is limited and no Codex-specific hook payloads are installed yet.");
+  if (collectHookTargets(assets.hooks, "codex").length > 0) {
+    notes.push("Codex: hook guidance is projected into AGENTS.md, but native hook execution is not installed yet.");
   }
 
   return { entries, notes };
