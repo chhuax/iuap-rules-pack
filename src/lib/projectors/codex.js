@@ -42,6 +42,16 @@ function renderCodexSkill({ asset, version }) {
   return `${marker}\n\n${asset.content}`;
 }
 
+function renderSupportFile({ file, target, version }) {
+  const marker = buildMarkerLine({
+    source: file.sourceRel,
+    target,
+    version,
+  });
+
+  return `${marker}\n\n${file.content}`;
+}
+
 function collectHookTargets(hooks, targetName) {
   return hooks
     .map(hook => ({
@@ -118,11 +128,29 @@ export function projectCodex({
       path: skillDir,
       target: "codex",
     });
+    for (const file of asset.supportFiles || []) {
+      entries.push({
+        kind: "skills",
+        mode: "path",
+        path: path.join(skillDir, file.relativePath),
+        target: "codex",
+      });
+    }
 
     if (!dryRun) {
       assertWritableSkillFile(skillMdPath, previousEntries);
       mkdirp(skillDir);
       fs.writeFileSync(skillMdPath, renderCodexSkill({ asset, version }), "utf8");
+      for (const file of asset.supportFiles || []) {
+        const supportPath = path.join(skillDir, file.relativePath);
+        assertWritableSkillFile(supportPath, previousEntries);
+        mkdirp(path.dirname(supportPath));
+        fs.writeFileSync(
+          supportPath,
+          renderSupportFile({ file, target: "codex", version }),
+          "utf8"
+        );
+      }
     }
   }
 

@@ -58,6 +58,8 @@ iuap-rules-pack/
   - `enterprise-delivery`
   - `change-impact-analysis`
   - `release-readiness`
+  - `code-review`
+  - `git-workflow`
 - `common/hooks`
   - `protect-config-files`
   - `pre-push-reminder`
@@ -67,11 +69,21 @@ iuap-rules-pack/
 - `stacks/java/rules`
   - `java-backend.md`
   - `java-code-review.md`
+  - `java-data-access.md`
   - `java-database-change.md`
+  - `java-error-handling.md`
+  - `java-redis.md`
+  - `java-security.md`
+  - `java-testing.md`
 - `stacks/java/skills`
+  - `java-database`
   - `spring-delivery`
   - `java-code-review`
   - `java-database-change`
+  - `java-error-handling`
+  - `java-redis`
+  - `java-security`
+  - `java-testing`
   - `yms-i18n`
 - `stacks/java/hooks`
   - `java-quality-gate`

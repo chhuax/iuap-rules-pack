@@ -33,13 +33,22 @@ function renderClaudeCommand({ asset, version }) {
     version,
   });
 
+  const supportSections = (asset.supportFiles || []).map(file => {
+    const supportMarker = buildMarkerLine({
+      source: file.sourceRel,
+      target: "claude",
+      version,
+    });
+    return `\n## Reference: ${file.relativePath}\n\n${supportMarker}\n\n${file.content.trim()}\n`;
+  }).join("");
+
   return `---
 description: ${description}
 ---
 
 ${marker}
 
-${asset.content}`;
+${asset.content}${supportSections}`;
 }
 
 function loadJsonFile(filePath, fallback) {

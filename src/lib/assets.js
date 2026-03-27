@@ -26,6 +26,29 @@ function listSkillDirectories(dirPath) {
     .filter(name => fs.existsSync(path.join(dirPath, name, "SKILL.md")));
 }
 
+function listFilesRecursive(rootPath, currentPath = rootPath) {
+  if (!fs.existsSync(currentPath)) {
+    return [];
+  }
+
+  const entries = fs.readdirSync(currentPath, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(currentPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listFilesRecursive(rootPath, fullPath));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(path.relative(rootPath, fullPath));
+    }
+  }
+
+  return files.sort();
+}
+
 function listHookFiles(dirPath) {
   if (!fs.existsSync(dirPath)) {
     return [];
@@ -114,10 +137,19 @@ export function collectAssets(repoRoot, selectedStacks) {
     const skillsRoot = path.join(repoRoot, module.sourceRoot, "skills");
     for (const skillName of listSkillDirectories(skillsRoot)) {
       const sourceRel = path.join(module.sourceRoot, "skills", skillName, "SKILL.md");
+      const skillRootRel = path.join(module.sourceRoot, "skills", skillName);
+      const supportFiles = listFilesRecursive(path.join(repoRoot, skillRootRel))
+        .filter(relativePath => relativePath !== "SKILL.md")
+        .map(relativePath => ({
+          content: readText(repoRoot, path.join(skillRootRel, relativePath)),
+          relativePath,
+          sourceRel: path.join(skillRootRel, relativePath),
+        }));
       skills.push({
         content: readText(repoRoot, sourceRel),
         namespace: module.namespace,
         skillName,
+        supportFiles,
         sourceRel,
       });
     }

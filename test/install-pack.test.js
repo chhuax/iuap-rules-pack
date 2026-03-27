@@ -73,6 +73,7 @@ test("installPack projects rules, skills, and Claude hooks", () => {
   });
 
   assert.ok(hasPlanEntryPath(result.plan.entries, "rules", "core.md"));
+  assert.ok(hasPlanEntryPath(result.plan.entries, "commands", "code-review.md"));
   assert.ok(hasPlanEntryPath(result.plan.entries, "commands", "java-code-review.md"));
   assert.ok(
     hasPlanEntryPath(
@@ -109,6 +110,12 @@ test("installPack projects rules, skills, and Claude hooks", () => {
     "utf8"
   );
   assert.match(installedScript, /IUAP_RULES_PACKAGE/);
+
+  const codeReviewCommand = fs.readFileSync(
+    path.join(claudeHome, "commands", "code-review.md"),
+    "utf8"
+  );
+  assert.match(codeReviewCommand, /Reference: references\/review-checklist\.md/);
 });
 
 test("installPack updates Claude assets when selected stacks change", () => {
@@ -184,6 +191,18 @@ test("installPack projects Codex rules and skills into managed locations", () =>
   assert.match(codexSkill, /IUAP_RULES_PACKAGE/);
   assert.match(codexSkill, /# java-code-review/);
 
+  const gitWorkflowSkill = fs.readFileSync(
+    path.join(codexHome, "skills", "git-workflow", "SKILL.md"),
+    "utf8"
+  );
+  assert.match(gitWorkflowSkill, /Git 工作流/);
+
+  const gitWorkflowReference = fs.readFileSync(
+    path.join(codexHome, "skills", "git-workflow", "references", "git-conventions.md"),
+    "utf8"
+  );
+  assert.match(gitWorkflowReference, /提交消息标准/);
+
   const agents = fs.readFileSync(path.join(projectRoot, "AGENTS.md"), "utf8");
   assert.match(agents, /IUAP_RULES_PACK_START/);
   assert.match(agents, /#### java-code-review\.md/);
@@ -226,6 +245,18 @@ test("installPack projects OpenCode instructions, shared Claude skills, and glob
   );
   assert.match(sharedSkill, /Java 异常信息多语言处理/);
   assert.match(sharedSkill, /IUAP_RULES_PACKAGE/);
+
+  const sharedSecuritySkill = fs.readFileSync(
+    path.join(claudeHome, "skills", "java-security", "SKILL.md"),
+    "utf8"
+  );
+  assert.match(sharedSecuritySkill, /Java Security/);
+
+  const sharedSecurityReference = fs.readFileSync(
+    path.join(claudeHome, "skills", "java-security", "references", "security-guidelines.md"),
+    "utf8"
+  );
+  assert.match(sharedSecurityReference, /禁止动态拼接 SQL/);
   assert.equal(
     fs.existsSync(path.join(projectRoot, ".opencode", "commands", "yms-i18n.md")),
     false
