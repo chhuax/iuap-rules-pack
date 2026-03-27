@@ -7,7 +7,7 @@
 
 ## scan-resources.js
 
-扫描项目中所有 `.properties` 资源文件，按目录分组输出前缀列表。用于初始化 `yms-i18n.json` 时自动发现资源目录。
+扫描项目中所有 `.properties` 资源文件，按目录分组输出前缀列表。用于在创建 `yms-i18n.json` 前辅助发现资源目录。
 
 ```bash
 node scripts/scan-resources.js
@@ -28,7 +28,7 @@ iuap-ypr/src/main/resources/lang	YS_YMSCLOUD_GPAASYPR-BE
 
 ## resolve-config.js
 
-根据 Java 文件路径，从 `yms-i18n.json` 查找对应的 i18n 配置。
+根据 Java 文件路径，从已存在的 `yms-i18n.json` 查找对应的 i18n 配置。
 
 ```bash
 JAVA_FILE="<Java文件路径>" node scripts/resolve-config.js

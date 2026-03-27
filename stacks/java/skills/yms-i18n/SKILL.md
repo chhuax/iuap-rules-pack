@@ -9,6 +9,16 @@ arguments:
 
 # Java 异常信息多语言处理
 
+## 前置条件
+
+- 项目根目录必须已存在 `yms-i18n.json`
+- `yms-i18n.json` 需要提前填好当前项目或模块的 `resourceDir`、`filePrefix`、`uidPrefix`
+- 这个 skill 适合接在半自动开发流程里，不负责在执行过程中做交互式初始化
+
+如果缺少配置，停止转换，并要求用户先准备好 `yms-i18n.json`。需要辅助定位资源目录时，可参考 `scripts/scan-resources.js` 的输出结果生成配置。
+
+---
+
 ## 使用方式
 
 ```
@@ -29,7 +39,7 @@ arguments:
 
 ## 执行流程
 
-### 第 0 步：初始化配置（仅首次或配置缺失时执行）
+### 第 0 步：检查前置配置
 
 配置统一保存在**项目根目录**（即执行命令时的工作目录）下的 `yms-i18n.json`。
 
@@ -64,26 +74,19 @@ arguments:
 
 **读取流程：**
 - **找到** `yms-i18n.json` → 读取配置，直接进入第 1 步
-- **未找到** → 执行初始化流程，询问用户获取方式：
+- **未找到** → 停止执行，要求用户先在项目根目录创建 `yms-i18n.json`
 
-```
-未找到 yms-i18n.json，需要初始化项目配置。
-请选择资源文件目录的获取方式：
-  1. 手动提供路径（直接告诉我资源文件目录）
-  2. 自动扫描项目（扫描所有 .properties 文件所在目录）
-请输入编号：
-```
-
-**选项 1（手动提供）：** 用户提供路径 → 若只有一个目录则直接作为 `default.resourceDir`，多个则询问哪个作 `default`，其余存入 `modules`，前缀从文件名自动提取。
-
-**选项 2（自动扫描）：** 执行 `node scripts/scan-resources.js`，结果处理同上。
+**配置准备建议：**
+- 已知资源目录时，直接手工创建 `yms-i18n.json`
+- 不确定资源目录时，先执行 `node scripts/scan-resources.js`，根据输出结果手工补齐配置
+- 不在 skill 执行过程中询问“选择哪个目录作为 default”这类初始化问题
 
 **前缀推断规则：**
 - `filePrefix` = 文件名去掉语言后缀（如 `_zh_CN`）
 - `uidPrefix` = `P_` + `filePrefix` 最后一个 `_` 后的部分 + `_`
   - 例：`YS_YMSCLOUD_GPAASMANAGE-BE` → `P_GPAASMANAGE-BE_`
 
-> `yms-i18n.json` 建议加入 `.gitignore`，避免提交到版本控制。
+> `yms-i18n.json` 建议加入 `.gitignore`，避免提交到版本控制；如果团队希望统一配置，也可以维护一份项目模板，由使用者在本地复制生成。
 
 ---
 
@@ -296,4 +299,3 @@ InternationalUtils.getMessageWithDefault(...)
 - [ ] properties 文件冒号已转义（`UID\:P_`）
 - [ ] 资源文件新增条目前后无空行
 - [ ] 异常结构保持不变
-
